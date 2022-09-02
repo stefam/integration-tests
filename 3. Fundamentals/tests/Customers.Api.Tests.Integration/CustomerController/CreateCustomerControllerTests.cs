@@ -9,7 +9,7 @@ using Customers.Api.Contracts.Responses;
 namespace Customers.Api.Tests.Integration.CustomerController;
 
 // [CollectionDefinition("CustomerApi Collection")]
-public class CreateCustomerControllerTests : IClassFixture<WebApplicationFactory<IApiMarker>>, IAsyncLifetime
+public class CreateCustomerControllerTests : IClassFixture<CustomerApiFactory>
 {
     private readonly HttpClient _httpClient;
 

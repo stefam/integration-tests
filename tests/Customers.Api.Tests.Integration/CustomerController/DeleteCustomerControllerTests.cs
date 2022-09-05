@@ -7,7 +7,7 @@ using System.Net.Http.Json;
 
 namespace Customers.Api.Tests.Integration.CustomerController;
 
-public class GetCustomerControllerTests : IClassFixture<CustomerApiFactory>
+public class DeleteCustomerControllerTests : IClassFixture<CustomerApiFactory>
 {
     private readonly HttpClient _httpClient;
 
@@ -18,13 +18,13 @@ public class GetCustomerControllerTests : IClassFixture<CustomerApiFactory>
         .RuleFor(x => x.GitHubUsername, CustomerApiFactory.ValidGitHubUser)
         .RuleFor(x => x.DateOfBirth, faker => faker.Person.DateOfBirth.Date);
 
-    public GetCustomerControllerTests(CustomerApiFactory apiFactory)
+    public DeleteCustomerControllerTests(CustomerApiFactory apiFactory)
     {
         _httpClient = apiFactory.CreateClient();
     }
 
     [Fact]
-    public async Task Get_ReturnsCustomer_WhenCustomerExists()
+    public async Task Delete_ReturnsOk_WhenCustomerExists()
     {
         // Arrange
         var customer = _customerGenerator.Generate();
@@ -32,19 +32,17 @@ public class GetCustomerControllerTests : IClassFixture<CustomerApiFactory>
         var createdCustomer = await createdCustomerResponse.Content.ReadFromJsonAsync<CustomerResponse>();
 
         // Act
-        var response = await _httpClient.GetAsync($"customers/{createdCustomer!.Id}");
+        var response = await _httpClient.DeleteAsync($"customers/{createdCustomer!.Id}");
 
         // Assert
-        var retrievedCustomer = await response.Content.ReadFromJsonAsync<CustomerResponse>();
-        retrievedCustomer.Should().BeEquivalentTo(createdCustomer);
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
-    public async Task Get_ReturnsNotFound_WhenCustomerDoesNotExist()
+    public async Task Delete_ReturnsNotFound_WhenCustomerDoesNotExist()
     {
         // Act
-        var response = await _httpClient.GetAsync($"customers/{Guid.NewGuid()}");
+        var response = await _httpClient.DeleteAsync($"customers/{Guid.NewGuid()}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);

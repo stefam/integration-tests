@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 
@@ -16,6 +17,7 @@ namespace Customers.Api.Tests.Integration
     public class CustomerApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifetime
     {
         public const string ValidGitHubUser = "validuser";
+        public const string ThrottledUser = "throttle";
 
         private readonly TestcontainerDatabase _dbContainer =
             new TestcontainersBuilder<PostgreSqlTestcontainer>()
@@ -38,6 +40,9 @@ namespace Customers.Api.Tests.Integration
 
             builder.ConfigureTestServices(services =>
             {
+                // Remove all background running services from doing undesired changes.
+                services.RemoveAll(typeof(IHostedService));
+
                 services.RemoveAll(typeof(IDbConnectionFactory));
                 services.AddSingleton<IDbConnectionFactory>(_ => 
                     new NpgsqlConnectionFactory(_dbContainer.ConnectionString));
@@ -57,6 +62,7 @@ namespace Customers.Api.Tests.Integration
         {
             _gitHubApiServer.Start();
             _gitHubApiServer.SetupUser(ValidGitHubUser);
+            _gitHubApiServer.SetupThrottledUserUser(ThrottledUser);
             await _dbContainer.StartAsync();
         }
 

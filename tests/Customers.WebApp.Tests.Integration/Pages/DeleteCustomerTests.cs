@@ -6,7 +6,7 @@ using Microsoft.Playwright;
 namespace Customers.WebApp.Tests.Integration.Pages;
 
 [Collection("Test collection")]
-public class GetAllCustomerTests
+public class DeleteCustomerTests
 {
     private readonly SharedTestContext _testContext;
     private readonly Faker<Customer> _customerGenerator = new Faker<Customer>()
@@ -15,13 +15,13 @@ public class GetAllCustomerTests
         .RuleFor(x => x.GitHubUsername, SharedTestContext.ValidGitHubUsername)
         .RuleFor(x => x.DateOfBirth, faker => DateOnly.FromDateTime(faker.Person.DateOfBirth.Date));
 
-    public GetAllCustomerTests(SharedTestContext testContext)
+    public DeleteCustomerTests(SharedTestContext testContext)
     {
         _testContext = testContext;
     }
 
     [Fact]
-    public async Task GetAll_ContainsCustomer_WhenCustomerExists()
+    public async Task Delete_DeletesCustomer_WhenCustomerExists()
     {
         // Arrange
         var page = await _testContext.Browser.NewPageAsync(new BrowserNewPageOptions
@@ -29,18 +29,16 @@ public class GetAllCustomerTests
             BaseURL = SharedTestContext.AppUrl
         });
         var customer = await CreateCustomer(page);
+        await page.GotoAsync($"customers/{customer.Id}");
 
         // Act
-        await page.GotoAsync("/customers");
-
-        var name = page.Locator("tbody>tr>td")
-            .Filter(new LocatorFilterOptions { HasTextString = customer.FullName });
+        page.Dialog += (_, dialog) => dialog.AcceptAsync();
+        await page.ClickAsync("button.btn.btn-danger");
 
         // Assert
-        (await name.First.InnerTextAsync()).Should().Be(customer.FullName);
-
-        // Cleanup
-        // await page.CloseAsync();
+        await page.GotoAsync($"customers/{customer.Id}");
+        (await page.Locator("article>p").InnerHTMLAsync())
+            .Should().Be("No customer found with this id");
     }
 
     private async Task<Customer> CreateCustomer(IPage page)
@@ -54,6 +52,11 @@ public class GetAllCustomerTests
         await page.FillAsync("input[id=dob]", customer.DateOfBirth.ToString("yyyy-MM-dd"));
 
         await page.ClickAsync("button[type=submit]");
+
+        var element = page.Locator("article>p>a").First;
+        var link = await element!.GetAttributeAsync("href");
+        var idInText = link!.Split('/').Last();
+        customer.Id = Guid.Parse(idInText);
 
         return customer;
     }

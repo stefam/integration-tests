@@ -15,7 +15,8 @@ public class SharedTestContext : IAsyncLifetime
     private static readonly string DockerComposeFile =
         Path.Combine(Directory.GetCurrentDirectory(), (TemplateString)"../../../docker-compose-integration.yml");
 
-    private readonly ICompositeService _dockerService = new Builder()
+    private readonly ICompositeService _dockerService =
+        new Builder()
         .UseContainer()
         .UseCompose()
         .FromFile(DockerComposeFile)
@@ -36,7 +37,7 @@ public class SharedTestContext : IAsyncLifetime
         _playwright = await Playwright.CreateAsync();
         Browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
         {
-            // Headless = false,
+            //Headless = false,
             SlowMo = 150
         });
     }

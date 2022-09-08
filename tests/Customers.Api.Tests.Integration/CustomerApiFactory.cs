@@ -1,5 +1,4 @@
 ﻿using Customers.Api.Database;
-using Docker.DotNet.Models;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
